@@ -95,7 +95,7 @@ namespace LiuxiurongRobot
                         formhash = formhash,
                         tomhash = tomhash,
                         act = "tpadd",
-                        tid = "177 or 1=1", //216 or tid=177
+                        tid = 177, //216 or tid=177
                         tpxm = name,
                         tptel = phoneNum
                     });
