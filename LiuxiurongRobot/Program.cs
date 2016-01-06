@@ -19,7 +19,7 @@ namespace LiuxiurongRobot
 
         static void Main(string[] args)
         {
-            if (DateTime.Now > DateTime.Parse("2016/1/1"))
+            if (DateTime.Now > DateTime.Parse("2016/1/11"))
             {
                 Console.WriteLine("刷票时间已经过了，本程序自动销毁~");
                 Console.ReadKey();
@@ -178,7 +178,7 @@ namespace LiuxiurongRobot
         {
             Console.WriteLine("获取目前票况，请稍等...");
             var client = new HttpClient();
-            var hashformate = client.Create<string>(HttpMethod.Get, "http://vote.art-work.com.cn/plugin.php?id=tom_weixin_vote&mod=info&vid=2&tid=22").Send();
+            var hashformate = client.Create<string>(HttpMethod.Get, "http://vote.art-work.com.cn/plugin.php?id=tom_weixin_vote&mod=info&vid=2&tid=22&from=timeline&isappinstalled=1").Send();
             if (!hashformate.IsValid())
             {
                 Console.WriteLine("数据拉取失败");
