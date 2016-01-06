@@ -14,7 +14,8 @@ namespace LiuxiurongRobot
         /// 投票次数
         /// </summary>
         public static int CountTims { set; get; }
-        public static int CountThread { set; get; } = 5;
+        public static int CountThread { set; get; } = 1;
+        public static string RootUrl { set; get; } = "http://art-work.com.cn/plugin.php";
         public static bool IsSleep { set; get; }
 
         static void Main(string[] args)
@@ -66,13 +67,13 @@ namespace LiuxiurongRobot
                             countTimes--;
                             if (countTimes < 0)
                                 break;
-                            var name = new BuildName().MakeRealNames(1).Trim(',');
-                            var phoneNum = BuildPhoneNum.MackPhoneNum();
+                            //var name = new BuildName().MakeRealNames(1).Trim(',');
+                            //var phoneNum = BuildPhoneNum.MackPhoneNum();
 
                             Console.WriteLine("当 前 IP:" + (ipAddress == null ? "本地IP" : IpPhysicsAddress(ipAddress)));
                             //Console.WriteLine("伪造姓名:" + name);
                             //Console.WriteLine("伪造电话:" + phoneNum);
-                            ipAddress = RunRobot(name, phoneNum, string.IsNullOrWhiteSpace(ipAddress) ? "222.188.100.204:8086" : ipAddress);
+                            ipAddress = RunRobot(new Random().Next(100, 304162), string.IsNullOrWhiteSpace(ipAddress) ? "222.188.100.204:8086" : ipAddress);
                         }
                         GetNowNum();
                         OutLog("任务完成！");
@@ -88,7 +89,7 @@ namespace LiuxiurongRobot
             }
         }
 
-        public static string RunRobot(string name, string phoneNum, string ipProxy = null)
+        public static string RunRobot(int userId, string ipProxy = null)
         {
             try
             {
@@ -96,7 +97,13 @@ namespace LiuxiurongRobot
                 {
                     Thread.Sleep(1000 * new Random().Next(1, 2));
                     var client = new HttpClient();
-                    var hashformate = client.Create<string>(HttpMethod.Get, "http://vote.art-work.com.cn/plugin.php?id=tom_weixin_vote&mod=info&vid=2&tid=22").Send();
+                    var hashformate = client.Create<string>(HttpMethod.Get, RootUrl, data: new
+                    {
+                        id = "tom_weixin_vote",
+                        mod = "info",
+                        vid = 16,
+                        tid = 254
+                    }).Send();
                     string formhash = "", tomhash = "";
                     if (hashformate.IsValid())
                     {
@@ -109,35 +116,25 @@ namespace LiuxiurongRobot
                     }
                     if (!string.IsNullOrWhiteSpace(ipProxy))
                     {
-                        client.Setting.Proxy = new WebProxy(ipProxy);
-                        //client.CookieContainer.Add(new Cookie
-                        //{
-                        //    Domain = "vote.art-work.com.cn",
-                        //    Name = "VXis_2132_tom_wx_vote_vid2_userid",
-                        //    Value = userId.ToString()
-                        //});
+                        //client.Setting.Proxy = new WebProxy(ipProxy);
+                        client.CookieContainer.Add(new Cookie
+                        {
+                            Domain = "art-work.com.cn",
+                            Name = "VXis_2132_tom_wx_vote_vid2_userid",
+                            Value = userId.ToString()
+                        });
                     }
 
-                    var context = client.Create<string>(HttpMethod.Get, "http://vote.art-work.com.cn/plugin.php", data: new
+                    var context = client.Create<string>(HttpMethod.Get, RootUrl, data: new
                     {
                         id = "tom_weixin_vote",
                         mod = "save",
-                        vid = 2,
+                        vid = 16,
                         formhash,
                         tomhash,
                         act = "tpadd",
-                        tid = 22,
-                        tpxm = name,
-                        tptel = phoneNum
-
-                        //id = "tom_weixin_vote",
-                        //mod = "save",
-                        //vid = 2,
-                        //formhash,
-                        //tomhash,
-                        //act = "tp",
-                        //tid = 22,
-                        //userid = userId
+                        tid = 264,
+                        userid = userId
                     });
                     context.Send();
                     if (context.IsValid())
@@ -191,7 +188,19 @@ namespace LiuxiurongRobot
         {
             Console.WriteLine("获取目前票况，请稍等...");
             var client = new HttpClient();
-            var hashformate = client.Create<string>(HttpMethod.Get, "http://vote.art-work.com.cn/plugin.php?id=tom_weixin_vote&mod=info&vid=2&tid=22&from=timeline&isappinstalled=1").Send();
+            //           client.Setting.Headers = new WebHeaderCollection
+            //           {
+            //               @"Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8,
+            //Accept-Encoding: gzip, deflate, sdch,
+            //Accept-Language: zh-CN,zh;q=0.8,en-US;q=0.6,en;q=0.4,
+            //Cache-Control: max-age=0,
+            //Connection: keep-alive,
+            //Cookie: BIGipServerpool_xy3_web=1075161280.16671.0000; JSESSIONID=MZs3WKGY7QDX39NQTLgPHZ0x2K0MLX265y84DWTC1pMyVyRly6B6!1332451941,
+            //Host: qyxy.baic.gov.cn,
+            //Upgrade-Insecure-Requests: 1,
+            //User-Agent: mozilla/5.0 (iphone; cpu iphone os 5_1_1 like mac os x) applewebkit/534.46 (khtml, like gecko) mobile/9b206 MicroMessenger/5.0"
+            //           };
+            var hashformate = client.Create<string>(HttpMethod.Get, RootUrl, data: new { id = "tom_weixin_vote", mod = "info", vid = 16, tid = 254 }).Send();//"id=tom_weixin_vote&mod=info&vid=16&tid=254"
             if (!hashformate.IsValid())
             {
                 Console.WriteLine("数据拉取失败");
@@ -213,7 +222,7 @@ namespace LiuxiurongRobot
             int iptimes = 1;
             while (true)
             {
-                OutLog("尝试获取代理中，第" + iptimes++ + "次");
+                Console.WriteLine("尝试获取代理中，第" + iptimes++ + "次");
                 var hashformate = new HttpClient().Create<string>(HttpMethod.Get, "http://vxer.daili666.com/ip/?tid=557541152620047&num=1&delay=5&category=2&sortby=time&foreign=none").Send();
                 if (hashformate.IsValid() && IpAddress(hashformate.Result))
                 {
@@ -279,7 +288,7 @@ namespace LiuxiurongRobot
 
         private static void OutLog(string obj = null)
         {
-            //Console.WriteLine(obj);
+            Console.WriteLine(obj);
         }
     }
 }
