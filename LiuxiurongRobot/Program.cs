@@ -26,26 +26,34 @@ namespace LiuxiurongRobot
                 Console.ReadKey();
                 return;
             }
-            GetNowNum();
-            Console.WriteLine("请输入投票次数(数字大于零，无限大)：");
-            var x = Console.ReadLine().ToInt32();
-            IsSleep = false;
-            RunThread(x);
-            new Thread(() =>
-            {
-                while (true)
-                {
-                    Thread.Sleep(1000 * 60 * 4);
-                    IsSleep = true;
-                    Thread.Sleep(1000 * 30);
-                }
-            })
-            { IsBackground = true }.Start();
-            Console.ReadKey();
+            //GetNowNum();
+
+            var client = new HttpClient();
+            client.Setting.Headers.Add("User-Agent",
+                             "Mozilla/5.0 (iPhone; CPU iPhone OS 7_0 like Mac OS X; en-us) AppleWebKit/537.51.1 (KHTML, like Gecko) Version/7.0 Mobile/11A465 Safari/9537.53");
+            var context = client.Create<string>(HttpMethod.Get, "http://www.cnblogs.com/").Send();
+            var a = context.Result;
+            var b = 1;
+            //Console.WriteLine("请输入投票次数(数字大于零，无限大)：");
+            //var x = Console.ReadLine().ToInt32();
+            //IsSleep = false;
+            //RunThread(x);
+            //new Thread(() =>
+            //{
+            //    while (true)
+            //    {
+            //        Thread.Sleep(1000 * 60 * 4);
+            //        IsSleep = true;
+            //        Thread.Sleep(1000 * 30);
+            //    }
+            //})
+            //{ IsBackground = true }.Start();
+            //Console.ReadKey();
         }
 
         public static void RunThread(int countTimes)
         {
+            string ipAddress = null; // GetIp();
             for (var i = 0; i < CountThread; i++)
             {
                 new Thread(() =>
@@ -53,7 +61,6 @@ namespace LiuxiurongRobot
                     try
                     {
                         Console.WriteLine("线程{0}启动", Thread.CurrentThread.ManagedThreadId);
-                        string ipAddress = null;
                         while (true)
                         {
                             if (IsSleep)
@@ -67,16 +74,11 @@ namespace LiuxiurongRobot
                             countTimes--;
                             if (countTimes < 0)
                                 break;
-                            //var name = new BuildName().MakeRealNames(1).Trim(',');
-                            //var phoneNum = BuildPhoneNum.MackPhoneNum();
-
-                            Console.WriteLine("当 前 IP:" + (ipAddress == null ? "本地IP" : IpPhysicsAddress(ipAddress)));
-                            //Console.WriteLine("伪造姓名:" + name);
-                            //Console.WriteLine("伪造电话:" + phoneNum);
-                            ipAddress = RunRobot(new Random().Next(1000, 337339), string.IsNullOrWhiteSpace(ipAddress) ? "222.188.100.204:8086" : ipAddress);
+                            Console.WriteLine("当 前 IP:" + (ipAddress == null ? "本地IP" : Common.IpPhysicsAddress(ipAddress)));
+                            //ipAddress = RunRobot(new Random().Next(1000, 337339), string.IsNullOrWhiteSpace(ipAddress) ? "222.188.100.204:8086" : ipAddress);
                         }
                         GetNowNum();
-                        OutLog("任务完成！");
+                        Common.OutLog("任务完成！");
                     }
                     catch (Exception e)
                     {
@@ -87,113 +89,6 @@ namespace LiuxiurongRobot
                 { IsBackground = true }.Start();
                 Thread.Sleep(250);
             }
-        }
-
-        public static string RunRobot(int userId, string ipProxy = null)
-        {
-            try
-            {
-                while (true)
-                {
-                    Thread.Sleep(1000 * new Random().Next(1, 2));
-                    var client = new HttpClient();
-                    var hashformate = client.Create<string>(HttpMethod.Get, RootUrl, data: new
-                    {
-                        id = "tom_weixin_vote",
-                        mod = "info",
-                        vid = 16,
-                        tid = 254
-                    }).Send();
-                    string formhash = "", tomhash = "";
-                    if (hashformate.IsValid())
-                    {
-                        var doc = new HtmlDocument();
-                        doc.LoadHtml(hashformate.Result);
-                        formhash = doc.DocumentNode.SelectSingleNode("//input[@name='formhash']").Attributes["value"].Value;
-                        tomhash = doc.DocumentNode.SelectSingleNode("//input[@name='tomhash']").Attributes["value"].Value;
-                        OutLog("UserID：" + userId);
-                        OutLog("提取FORMHASH值：" + formhash);
-                        OutLog("提取TOMHASH值：" + tomhash);
-                    }
-                    if (!string.IsNullOrWhiteSpace(ipProxy))
-                    {
-                        //client.Setting.Proxy = new WebProxy(ipProxy);
-                        client.CookieContainer.Add(new Cookie
-                        {
-                            Domain = "art-work.com.cn",
-                            Name = "U2i3_2132_tom_wx_vote_vid16_userid",
-                            Value = userId.ToString()
-                        });
-                        client.Setting.Headers = new WebHeaderCollection
-                        {
-                          @"Accept:application/json, text/javascript, */*; q=0.01",
-                           "Accept-Encoding:gzip, deflate, sdch",
-                           "Accept-Language:zh-CN,zh;q=0.8",
-                           "Connection:keep-alive",
-                           "Host:art-work.com.cn",
-                           "Referer:http://art-work.com.cn/plugin.php?id=tom_weixin_vote&mod=info&vid=16&tid=254&from=timeline&isappinstalled=1",
-                           "User-Agent:Mozilla/5.0 (iPhone; CPU iPhone OS 7_0 like Mac OS X; en-us) AppleWebKit/537.51.1 (KHTML, like Gecko) Version/7.0 Mobile/11A465 Safari/9537.53",
-                           "X-Requested-With:XMLHttpRequest"
-                        };
-                    }
-
-                    var context = client.Create<string>(HttpMethod.Get, RootUrl, data: new
-                    {
-                        id = "tom_weixin_vote",
-                        mod = "save",
-                        vid = 16,
-                        formhash,
-                        tomhash,
-                        act = "tp",
-                        tid = 254,
-                        userid = userId
-                    });
-                    context.Send();
-                    if (context.IsValid())
-                    {
-                        OutLog(context.Result);
-                        var model = JsonConvert.DeserializeObject<dynamic>(context.Result);
-                        if (model.status == "303")
-                        {
-                            OutLog("IP被限制，自动切换IP代理！");
-                            ipProxy = GetIp();
-                        }
-                        else if (model.status == "302")
-                        {
-                            Console.WriteLine("该选手被所锁定！");
-                            //ipProxy = GetIp();
-                        }
-                        else if (model.status == "100")
-                        {
-                            Console.WriteLine("伪造签证失效！");
-                            return null;
-                        }
-                        else if (model.status == "200")
-                        {
-                            Console.WriteLine(Thread.CurrentThread.ManagedThreadId + " 成功投一票！" +
-                                              DateTime.Now.ToString(CultureInfo.InvariantCulture));
-                            return ipProxy;
-                        }
-                        else
-                        {
-                            Console.WriteLine("状态：" + model?.status);
-                        }
-
-                    }
-                    else
-                    {
-                        OutLog("错误！状态码：" + context.Response);
-                        ipProxy = GetIp();
-                    }
-                }
-
-            }
-            catch (Exception e)
-            {
-                OutLog("出现一次错误，跳过本次" + e.Message);
-            }
-            OutLog();
-            return null;
         }
 
         public static void GetNowNum()
@@ -214,82 +109,6 @@ namespace LiuxiurongRobot
             Console.WriteLine();
         }
 
-        /// <summary>
-        /// 获取IP代理地址
-        /// </summary>
-        /// <returns></returns>
-        private static string GetIp()
-        {
-            int iptimes = 1;
-            while (true)
-            {
-                Console.WriteLine("尝试获取代理中，第" + iptimes++ + "次");
-                var hashformate = new HttpClient().Create<string>(HttpMethod.Get, "http://vxer.daili666.com/ip/?tid=557541152620047&num=1&delay=5&category=2&sortby=time&foreign=none").Send();
-                if (hashformate.IsValid() && IpAddress(hashformate.Result))
-                {
-                    return hashformate.Result;
-                }
-                Thread.Sleep(250);
-            }
-        }
-
-        /// <summary>
-        /// 查询当前请求IP地址
-        /// </summary>
-        /// <param name="ip"></param>
-        /// <returns></returns>
-        private static bool IpAddress(string ip)
-        {
-            const string searchIp = "http://1111.ip138.com/ic.asp";
-            var http = new HttpClient();
-            http.Setting.Proxy = new WebProxy(ip);
-            http.Setting.ReadWriteTimeout = 3 * 1000;
-            var hashformate = http.Create<string>(HttpMethod.Get, searchIp).Send();
-            if (hashformate.IsValid())
-            {
-                HtmlDocument doc = new HtmlDocument();
-                doc.LoadHtml(hashformate.Result);
-                var ipAddress = doc.DocumentNode.SelectSingleNode("//center").InnerText;
-                OutLog(ipAddress);
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
-
-        /// <summary>
-        /// 查询IP地址的物理位置
-        /// </summary>
-        /// <param name="ip"></param>
-        /// <returns></returns>
-        public static dynamic IpPhysicsAddress(string ip)
-        {
-            ip = ip.Split(':')[0].Trim();
-            var http = new HttpClient();
-            var hashformate = http.Create<string>(HttpMethod.Get, "http://www.133ip.com/gn/jk.php", data: new { an = 1, q = ip }).Send();
-            if (hashformate.IsValid())
-            {
-                try
-                {
-                    var json = JsonConvert.DeserializeObject<dynamic>(hashformate.Result);
-                    return json.s1;
-                }
-                catch (Exception)
-                {
-                    return "地址解析错误";
-                }
-            }
-            else
-            {
-                return "地址解析错误";
-            }
-        }
-
-        private static void OutLog(string obj = null)
-        {
-            Console.WriteLine(obj);
-        }
+        
     }
 }
