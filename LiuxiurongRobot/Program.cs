@@ -73,7 +73,7 @@ namespace LiuxiurongRobot
                             Console.WriteLine("当 前 IP:" + (ipAddress == null ? "本地IP" : IpPhysicsAddress(ipAddress)));
                             //Console.WriteLine("伪造姓名:" + name);
                             //Console.WriteLine("伪造电话:" + phoneNum);
-                            ipAddress = RunRobot(new Random().Next(100, 304162), string.IsNullOrWhiteSpace(ipAddress) ? "222.188.100.204:8086" : ipAddress);
+                            ipAddress = RunRobot(new Random().Next(1000, 337339), string.IsNullOrWhiteSpace(ipAddress) ? "222.188.100.204:8086" : ipAddress);
                         }
                         GetNowNum();
                         OutLog("任务完成！");
@@ -111,6 +111,7 @@ namespace LiuxiurongRobot
                         doc.LoadHtml(hashformate.Result);
                         formhash = doc.DocumentNode.SelectSingleNode("//input[@name='formhash']").Attributes["value"].Value;
                         tomhash = doc.DocumentNode.SelectSingleNode("//input[@name='tomhash']").Attributes["value"].Value;
+                        OutLog("UserID：" + userId);
                         OutLog("提取FORMHASH值：" + formhash);
                         OutLog("提取TOMHASH值：" + tomhash);
                     }
@@ -120,9 +121,20 @@ namespace LiuxiurongRobot
                         client.CookieContainer.Add(new Cookie
                         {
                             Domain = "art-work.com.cn",
-                            Name = "VXis_2132_tom_wx_vote_vid2_userid",
+                            Name = "U2i3_2132_tom_wx_vote_vid16_userid",
                             Value = userId.ToString()
                         });
+                        client.Setting.Headers = new WebHeaderCollection
+                        {
+                          @"Accept:application/json, text/javascript, */*; q=0.01",
+                           "Accept-Encoding:gzip, deflate, sdch",
+                           "Accept-Language:zh-CN,zh;q=0.8",
+                           "Connection:keep-alive",
+                           "Host:art-work.com.cn",
+                           "Referer:http://art-work.com.cn/plugin.php?id=tom_weixin_vote&mod=info&vid=16&tid=254&from=timeline&isappinstalled=1",
+                           "User-Agent:Mozilla/5.0 (iPhone; CPU iPhone OS 7_0 like Mac OS X; en-us) AppleWebKit/537.51.1 (KHTML, like Gecko) Version/7.0 Mobile/11A465 Safari/9537.53",
+                           "X-Requested-With:XMLHttpRequest"
+                        };
                     }
 
                     var context = client.Create<string>(HttpMethod.Get, RootUrl, data: new
@@ -132,8 +144,8 @@ namespace LiuxiurongRobot
                         vid = 16,
                         formhash,
                         tomhash,
-                        act = "tpadd",
-                        tid = 264,
+                        act = "tp",
+                        tid = 254,
                         userid = userId
                     });
                     context.Send();
@@ -188,22 +200,11 @@ namespace LiuxiurongRobot
         {
             Console.WriteLine("获取目前票况，请稍等...");
             var client = new HttpClient();
-            //           client.Setting.Headers = new WebHeaderCollection
-            //           {
-            //               @"Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8,
-            //Accept-Encoding: gzip, deflate, sdch,
-            //Accept-Language: zh-CN,zh;q=0.8,en-US;q=0.6,en;q=0.4,
-            //Cache-Control: max-age=0,
-            //Connection: keep-alive,
-            //Cookie: BIGipServerpool_xy3_web=1075161280.16671.0000; JSESSIONID=MZs3WKGY7QDX39NQTLgPHZ0x2K0MLX265y84DWTC1pMyVyRly6B6!1332451941,
-            //Host: qyxy.baic.gov.cn,
-            //Upgrade-Insecure-Requests: 1,
-            //User-Agent: mozilla/5.0 (iphone; cpu iphone os 5_1_1 like mac os x) applewebkit/534.46 (khtml, like gecko) mobile/9b206 MicroMessenger/5.0"
-            //           };
             var hashformate = client.Create<string>(HttpMethod.Get, RootUrl, data: new { id = "tom_weixin_vote", mod = "info", vid = 16, tid = 254 }).Send();//"id=tom_weixin_vote&mod=info&vid=16&tid=254"
             if (!hashformate.IsValid())
             {
-                Console.WriteLine("数据拉取失败");
+                Console.WriteLine("数据拉取失败," + hashformate.State);
+                return;
             }
             HtmlDocument doc = new HtmlDocument();
             doc.LoadHtml(hashformate.Result);
