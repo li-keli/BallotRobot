@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Globalization;
-using System.Net;
 using System.Threading;
 using FSLib.Network.Http;
 using HtmlAgilityPack;
-using Newtonsoft.Json;
 
 namespace LiuxiurongRobot
 {
@@ -14,8 +11,7 @@ namespace LiuxiurongRobot
         /// 投票次数
         /// </summary>
         public static int CountTims { set; get; }
-        public static int CountThread { set; get; } = 1;
-        public static string RootUrl { set; get; } = "http://art-work.com.cn/plugin.php";
+        public static int CountThread { set; get; } = 4;
         public static bool IsSleep { set; get; }
 
         static void Main(string[] args)
@@ -26,40 +22,33 @@ namespace LiuxiurongRobot
                 Console.ReadKey();
                 return;
             }
-            //GetNowNum();
-
-            var client = new HttpClient();
-            client.Setting.Headers.Add("User-Agent",
-                             "Mozilla/5.0 (iPhone; CPU iPhone OS 7_0 like Mac OS X; en-us) AppleWebKit/537.51.1 (KHTML, like Gecko) Version/7.0 Mobile/11A465 Safari/9537.53");
-            var context = client.Create<string>(HttpMethod.Get, "http://www.cnblogs.com/").Send();
-            var a = context.Result;
-            var b = 1;
-            //Console.WriteLine("请输入投票次数(数字大于零，无限大)：");
-            //var x = Console.ReadLine().ToInt32();
-            //IsSleep = false;
-            //RunThread(x);
-            //new Thread(() =>
-            //{
-            //    while (true)
-            //    {
-            //        Thread.Sleep(1000 * 60 * 4);
-            //        IsSleep = true;
-            //        Thread.Sleep(1000 * 30);
-            //    }
-            //})
-            //{ IsBackground = true }.Start();
-            //Console.ReadKey();
+            GetNowNum();
+            Console.WriteLine("请输入投票次数(数字大于零，无限大)：");
+            var x = Console.ReadLine().ToInt32();
+            IsSleep = false;
+            RunThread(x);
+            new Thread(() =>
+            {
+                while (true)
+                {
+                    Thread.Sleep(1000 * 60 * 4);
+                    IsSleep = true;
+                    Thread.Sleep(1000 * 30);
+                }
+            })
+            { IsBackground = true }.Start();
+            Console.ReadKey();
         }
 
         public static void RunThread(int countTimes)
         {
-            string ipAddress = null; // GetIp();
             for (var i = 0; i < CountThread; i++)
             {
                 new Thread(() =>
                 {
                     try
                     {
+                        string ipAddress = Common.GetIp();
                         Console.WriteLine("线程{0}启动", Thread.CurrentThread.ManagedThreadId);
                         while (true)
                         {
@@ -67,7 +56,7 @@ namespace LiuxiurongRobot
                             {
                                 var sleepMin = new Random().Next(1, 2);
                                 Console.WriteLine("线程{0}开始休眠，{1}分钟", Thread.CurrentThread.ManagedThreadId, sleepMin);
-                                Thread.Sleep(1000 * 60 * sleepMin);
+                                Thread.Sleep(500 * 60);// *sleepMin
                                 IsSleep = false;
                             }
 
@@ -75,7 +64,7 @@ namespace LiuxiurongRobot
                             if (countTimes < 0)
                                 break;
                             Console.WriteLine("当 前 IP:" + (ipAddress == null ? "本地IP" : Common.IpPhysicsAddress(ipAddress)));
-                            //ipAddress = RunRobot(new Random().Next(1000, 337339), string.IsNullOrWhiteSpace(ipAddress) ? "222.188.100.204:8086" : ipAddress);
+                            ipAddress = new ForgeRobot().RunRobot(ipAddress);
                         }
                         GetNowNum();
                         Common.OutLog("任务完成！");
@@ -95,7 +84,7 @@ namespace LiuxiurongRobot
         {
             Console.WriteLine("获取目前票况，请稍等...");
             var client = new HttpClient();
-            var hashformate = client.Create<string>(HttpMethod.Get, RootUrl, data: new { id = "tom_weixin_vote", mod = "info", vid = 16, tid = 254 }).Send();//"id=tom_weixin_vote&mod=info&vid=16&tid=254"
+            var hashformate = client.Create<string>(HttpMethod.Get, Settion.RootUrl, data: new { id = "tom_weixin_vote", mod = "info", vid = 16, tid = Settion.Tid }).Send();
             if (!hashformate.IsValid())
             {
                 Console.WriteLine("数据拉取失败," + hashformate.State);
@@ -109,6 +98,6 @@ namespace LiuxiurongRobot
             Console.WriteLine();
         }
 
-        
+
     }
 }

@@ -18,7 +18,7 @@ namespace LiuxiurongRobot
             int iptimes = 1;
             while (true)
             {
-                Console.WriteLine("尝试获取代理中，第" + iptimes++ + "次");
+                Console.WriteLine(Thread.CurrentThread.ManagedThreadId + "尝试获取代理中，第" + iptimes++ + "次");
                 var hashformate = new HttpClient().Create<string>(HttpMethod.Get, "http://vxer.daili666.com/ip/?tid=557541152620047&num=1&delay=5&category=2&sortby=time&foreign=none").Send();
                 if (hashformate.IsValid() && IpAddress(hashformate.Result))
                 {
@@ -33,7 +33,7 @@ namespace LiuxiurongRobot
         /// </summary>
         /// <param name="ip"></param>
         /// <returns></returns>
-        private static bool IpAddress(string ip)
+        public static bool IpAddress(string ip)
         {
             const string searchIp = "http://1111.ip138.com/ic.asp";
             var http = new HttpClient();
