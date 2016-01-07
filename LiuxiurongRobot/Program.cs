@@ -11,7 +11,7 @@ namespace LiuxiurongRobot
         /// 投票次数
         /// </summary>
         public static int CountTims { set; get; }
-        public static int CountThread { set; get; } = 4;
+        public static int CountThread { set; get; } = 5;
         public static bool IsSleep { set; get; }
 
         static void Main(string[] args)

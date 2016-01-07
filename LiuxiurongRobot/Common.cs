@@ -27,11 +27,15 @@ namespace LiuxiurongRobot
                 }
                 Console.WriteLine(Thread.CurrentThread.ManagedThreadId + "尝试获取代理中，第" + iptimes++ + "次");
                 var hashformate = new HttpClient().Create<string>(HttpMethod.Get, "http://vxer.daili666.com/ip/?tid=557541152620047&num=1&delay=5&category=2&sortby=time&foreign=none").Send();
-                if (hashformate.IsValid() && IpAddress(hashformate.Result))
+                lock (hashformate)
                 {
-                    return hashformate.Result;
+                    if (hashformate.IsValid() && IpAddress(hashformate.Result))
+                    {
+                        return hashformate.Result;
+                    }
+                    Thread.Sleep(2000);
                 }
-                Thread.Sleep(1000);
+               
             }
         }
 
@@ -45,8 +49,8 @@ namespace LiuxiurongRobot
             //const string searchIp = "http://1111.ip138.com/ic.asp";
             const string searchIp = "https://www.baidu.com/";
             var http = new HttpClient();
-            http.Setting.Timeout = 1000 * 3;
-            http.Setting.ReadWriteTimeout = 1000 * 3;
+            http.Setting.Timeout = 1000 * 5;
+            http.Setting.ReadWriteTimeout = 1000 * 5;
             http.Setting.Proxy = new WebProxy(ip);
             http.Setting.ReadWriteTimeout = 3 * 1000;
             var hashformate = http.Create<string>(HttpMethod.Get, searchIp).Send();
@@ -57,7 +61,7 @@ namespace LiuxiurongRobot
                 //var ipAddress = doc.DocumentNode.SelectSingleNode("//center").InnerText;
                 //OutLog(ipAddress);
 
-                OutLog(hashformate.Status);
+                OutLog(Thread.CurrentThread.ManagedThreadId+"线程，代理测试状态："+hashformate.Status);
                 return true;
             }
             else
