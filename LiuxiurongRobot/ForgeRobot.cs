@@ -35,8 +35,8 @@ namespace LiuxiurongRobot
                     {
                         id = "tom_weixin_vote",
                         mod = "info",
-                        vid = 16,
-                        tid = 254
+                        vid = Settion.Vid,
+                        tid = Settion.Tid
                     }).Send();
                     string formhash = "", tomhash = "";
                     if (!hashformate.IsValid())
@@ -56,11 +56,11 @@ namespace LiuxiurongRobot
                     {
                         id = "tom_weixin_vote",
                         mod = "save",
-                        vid = 16,
+                        vid = Settion.Vid,
                         formhash,
                         tomhash,
                         act = "tpadd",
-                        tid = 254,
+                        tid = Settion.Tid,
                         tpxm = userName,
                         tptel = phoneNum
                     }).Send();

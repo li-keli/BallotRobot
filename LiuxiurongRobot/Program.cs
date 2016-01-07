@@ -84,7 +84,7 @@ namespace LiuxiurongRobot
         {
             Console.WriteLine("获取目前票况，请稍等...");
             var client = new HttpClient();
-            var hashformate = client.Create<string>(HttpMethod.Get, Settion.RootUrl, data: new { id = "tom_weixin_vote", mod = "info", vid = 16, tid = Settion.Tid }).Send();
+            var hashformate = client.Create<string>(HttpMethod.Get, Settion.RootUrl, data: new { id = "tom_weixin_vote", mod = "info", vid = Settion.Vid, tid = Settion.Tid }).Send();
             if (!hashformate.IsValid())
             {
                 Console.WriteLine("数据拉取失败," + hashformate.State);
