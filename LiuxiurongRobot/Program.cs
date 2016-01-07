@@ -56,7 +56,7 @@ namespace LiuxiurongRobot
                             {
                                 var sleepMin = new Random().Next(1, 2);
                                 Console.WriteLine("线程{0}开始休眠，{1}分钟", Thread.CurrentThread.ManagedThreadId, sleepMin);
-                                Thread.Sleep(500 * 60);// *sleepMin
+                                Thread.Sleep(1000 * 60);// *sleepMin
                                 IsSleep = false;
                             }
 
